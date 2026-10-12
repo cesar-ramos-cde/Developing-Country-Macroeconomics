@@ -1,0 +1,161 @@
+*=====================================================================
+* INFORMALITY AND MULTIPLE JOB-HOLDING BY ECONOMIC ACTIVITY – EH 2025
+*=====================================================================
+clear all
+cls
+set more off
+cd "E:\William Collegue\Fall - First Semester\Developing Macroeconomics 505 Kuttner\Memo Cesar\code_hs_bol25"
+global datas = "Survey_Household"
+use "$datas/EH2025_Persona.dta", clear
+
+* Employed persons aged +14 and over
+gen ocupado = (condact == 1 & pet == 1) // employed persons
+label define area_lb 1 "Urbana" 2 "Rural", replace 
+label values area area_lb // 
+
+*---------------------------------------------------------------------
+* 1. INFORMALIDAD (misma definición del do-file de informalidad)
+*---------------------------------------------------------------------
+gen     mt = 1 if s04b_12 == 8                                   // Doméstico
+replace mt = 2 if inlist(s04b_13, 1, 2) & mt == .                // Estatal
+replace mt = 3 if inlist(s04b_12, 3, 6, 7) & mt == .             // Familiar
+replace mt = 4 if inlist(s04b_12, 1, 2, 4, 5) & s04b_14 <= 5 ///
+                  & mt == .                                      // Semiempresarial
+replace mt = 5 if inlist(s04b_12, 1, 2, 4, 5) & s04b_14 > 5  ///
+                  & !missing(s04b_14) & mt == .                  // Empresarial
+replace mt = . if ocupado == 0
+
+gen     informal = (s04f_36 != 1) if ocupado == 1               // no aporta a la Gestora
+replace informal = 1 if inlist(s04b_12, 6, 7) & ocupado == 1    // familiares sin remuneración
+replace informal = 0 if inlist(s04b_12, 2, 4) & mt == 5 & ocupado == 1  // empleadores > 5 personas
+label define informal 0 "Formal" 1 "Informal"
+label values informal informal
+
+*---------------------------------------------------------------------
+* 2. ACTIVIDAD ECONÓMICA DE LA OCUPACIÓN PRINCIPAL (42 sectores)
+*    s04b_10a_cod = código CAEB 2022 (texto). Usamos sus primeros dígitos.
+*---------------------------------------------------------------------
+gen d2 = real(substr(s04b_10a_cod, 1, 2))     // división (2 dígitos)
+gen d3 = substr(s04b_10a_cod, 1, 3)           // grupo (3 dígitos)
+gen d4 = substr(s04b_10a_cod, 1, 4)           // clase (4 dígitos)
+
+recode d2 (1=1) (2 3=4) (5 6 8 9=5) (7=6) (10=8) (11 12=9) (13 15=10)      ///
+          (14=11) (16=12) (17 18=13) (19/22=14) (23=15) (24 25=16)         ///
+          (26/30 33=17) (31 32=18) (35/39=19) (41=20) (42=21) (43=22)      ///
+          (45=23) (46=24) (47=25) (49=26) (50/53=27) (55=28) (56=29)       ///
+          (58/63=30) (64/66=31) (68=32) (69/75=33) (77/82=34) (84=35)      ///
+          (85=37) (86/88=39) (90/93=40) (94/96=41) (97 98=42) (else=.),    ///
+          gen(sector)
+
+* Ajustes dentro de algunas divisiones
+replace sector = 2  if d4 == "0128"                        // coca y especias
+replace sector = 3  if d3 == "014"                         // ganadería
+replace sector = 7  if inlist(d3, "101", "105")            // carnes y lácteos
+replace sector = 36 if sector == 37 & inlist(s04b_13, 1, 2) // educación pública
+replace sector = 38 if sector == 39 & inlist(s04b_13, 1, 2) // salud pública
+replace sector = 20 if s04b_10a_cod == "F"                 // código solo con letra (construcción)
+
+label define sector_lb ///
+     1 "Crop farming"                2 "Coca & spice crops"          3 "Livestock"           ///
+     4 "Forestry & fishing"          5 "Oil, gas & other mining"     6 "Metal mining"        ///
+     7 "Meat & dairy"                8 "Bakery & other food"         9 "Beverages & tobacco" ///
+    10 "Textiles, leather & footwear" 11 "Apparel"                   12 "Wood products"      ///
+    13 "Paper & printing"           14 "Chemicals & plastics"       15 "Non-metallic minerals" ///
+    16 "Metal products"             17 "Machinery & equipment"      18 "Furniture & other mfg." ///
+    19 "Electricity, gas & water"   20 "Building construction"      21 "Civil engineering"  ///
+    22 "Specialized construction"   23 "Vehicle trade & repair"     24 "Wholesale trade"    ///
+    25 "Retail trade"               26 "Land transport"             27 "Storage & other transport" ///
+    28 "Accommodation"              29 "Food & beverage services"   30 "Information & communication" ///
+    31 "Financial services"         32 "Real estate"                33 "Professional services" ///
+    34 "Administrative services"    35 "Public administration"      36 "Public education"   ///
+    37 "Private education"          38 "Public health"              39 "Private health"     ///
+    40 "Arts & recreation"          41 "Other personal services"    42 "Domestic work"
+label values sector sector_lb
+label var sector "Actividad económica (ocupación principal)"
+
+* Muestra de análisis: ocupados con actividad conocida
+gen muestra = (ocupado == 1 & !missing(sector))
+
+*---------------------------------------------------------------------
+* 3. TABLAS POR SECTOR
+*---------------------------------------------------------------------
+* TABLA 1. Ocupados, informales y tasa de informalidad por sector
+*   - Columna "Total": ocupados del sector
+*   - Columna "Informal": trabajadores informales
+*   - Segunda línea de cada fila (%): tasa de informalidad del sector
+tab sector informal if muestra [iw=factor], row
+
+* TABLA 1b. Tasa de informalidad (%) y observaciones en la muestra
+*   (el número N sirve para saber qué tan confiable es cada tasa)
+gen informal100 = 100*informal
+tabstat informal100 if muestra [aw=factor], by(sector) stat(mean n) format(%5.1f)
+
+* Tasa nacional
+tab informal if muestra [iw=factor]
+
+* TABLA 2. ¿Dónde están los informales? (ordenado de mayor a menor)
+*   La columna "Cum." de la fila 10 da el % que concentran los 10 primeros
+tab sector if muestra & informal == 1 [iw=factor], sort
+
+*---------------------------------------------------------------------
+* 4. PLURIEMPLEO
+*---------------------------------------------------------------------
+gen pluri = (s04e_25 == 1) if muestra
+label define sino 0 "No" 1 "Sí"
+label values pluri sino
+
+* Actividad de la ocupación secundaria (misma clasificación que arriba)
+gen d2_2 = real(substr(s04e_26_cod, 1, 2))
+gen d3_2 = substr(s04e_26_cod, 1, 3)
+gen d4_2 = substr(s04e_26_cod, 1, 4)
+
+recode d2_2 (1=1) (2 3=4) (5 6 8 9=5) (7=6) (10=8) (11 12=9) (13 15=10)    ///
+          (14=11) (16=12) (17 18=13) (19/22=14) (23=15) (24 25=16)         ///
+          (26/30 33=17) (31 32=18) (35/39=19) (41=20) (42=21) (43=22)      ///
+          (45=23) (46=24) (47=25) (49=26) (50/53=27) (55=28) (56=29)       ///
+          (58/63=30) (64/66=31) (68=32) (69/75=33) (77/82=34) (84=35)      ///
+          (85=37) (86/88=39) (90/93=40) (94/96=41) (97 98=42) (else=.),    ///
+          gen(sector2)
+
+replace sector2 = 2  if d4_2 == "0128"
+replace sector2 = 3  if d3_2 == "014"
+replace sector2 = 7  if inlist(d3_2, "101", "105")
+replace sector2 = 36 if sector2 == 37 & inlist(s04e_28, 1, 2)
+replace sector2 = 38 if sector2 == 39 & inlist(s04e_28, 1, 2)
+replace sector2 = 20 if s04e_26_cod == "F"
+replace sector2 = .  if pluri != 1
+label values sector2 sector_lb
+label var sector2 "Actividad económica (ocupación secundaria)"
+
+* ¿La segunda ocupación es en otro sector?
+gen     otro_sector = 0 if pluri == 1
+replace otro_sector = 1 if pluri == 1 & !missing(sector2) & sector2 != sector
+label values otro_sector sino
+
+* TABLA 3. Resumen del pluriempleo
+tab pluri if muestra [iw=factor]                      // % de ocupados con 2 trabajos
+tab otro_sector [iw=factor]                           // % con el 2º trabajo en otro sector
+tab pluri informal if muestra [iw=factor], row nofreq // informalidad: con 2 trabajos vs. 1
+tab area if pluri == 1 [iw=factor]                    // urbano / rural
+
+*---------------------------------------------------------------------
+* 5. ENLACES DEL GRÁFICO (pares de sectores unidos por pluriempleo)
+*    El par no tiene dirección: "A - B" junta A->B y B->A
+*---------------------------------------------------------------------
+gen par_a = min(sector, sector2) if otro_sector == 1
+gen par_b = max(sector, sector2) if otro_sector == 1
+label values par_a par_b sector_lb
+decode par_a, gen(nombre_a)
+decode par_b, gen(nombre_b)
+gen enlace = nombre_a + "  -  " + nombre_b if otro_sector == 1
+
+* Observaciones de la muestra en cada par (el gráfico usa pares con 5 o más)
+bysort enlace: gen n_enlace = _N if otro_sector == 1
+
+* TABLA 4. Enlaces ordenados de mayor a menor
+tab enlace if otro_sector == 1 & n_enlace >= 5 [iw=factor], sort   // personas (expandidas)
+tab enlace if otro_sector == 1 & n_enlace >= 5, sort              // observaciones en la muestra
+
+* TABLA 5. ¿En qué trabajan como segunda ocupación los del sector público?
+*   (35 Adm. pública, 36 Educación pública, 38 Salud pública)
+tab sector2 if otro_sector == 1 & inlist(sector, 35, 36, 38) [iw=factor], sort
