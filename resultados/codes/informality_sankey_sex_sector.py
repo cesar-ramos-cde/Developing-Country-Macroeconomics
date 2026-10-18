@@ -1,15 +1,5 @@
 # =====================================================================
 # Diagrama de Sankey de la informalidad - EH2025 (INE)
-# Columnas: sexo -> gran sector económico -> formal / informal -> pobreza del hogar
-# El alto de cada nodo y de cada flujo es proporcional a las personas
-# (con el factor de expansión). Texto en inglés, sin título (va en LaTeX).
-#
-# Salidas: informality_sankey_sex_sector.pdf (vectorial, para LaTeX)
-#          informality_sankey_sex_sector.png (600 dpi)
-#          informality_sankey_sex_sector_flows.csv (los números de cada flujo)
-# Requisitos:  pip install pandas numpy matplotlib
-# Uso:         cambie RUTA_DATOS y RUTA_SALIDA y corra:
-#              python informality_sankey_sex_sector.py
 # =====================================================================
 import os
 import numpy as np
@@ -25,7 +15,7 @@ RUTA_SALIDA = r"E:/William Collegue/Fall - First Semester/Developing Macroeconom
 os.makedirs(RUTA_SALIDA, exist_ok=True)
 
 
-# Fuentes incrustadas como texto (se ven nítidas y se pueden seleccionar en el PDF)
+# Fuentes incrustadas como texto 
 matplotlib.rcParams.update({"pdf.fonttype": 42, "ps.fonttype": 42,
                             "font.family": "DejaVu Sans", "font.size": 7.5})
 
@@ -36,7 +26,7 @@ df = pd.read_stata(RUTA_DATOS, convert_categoricals=False)
 oc = df[(df["condact"] == 1) & (df["pet"] == 1)].copy()
 
 # ---------------------------------------------------------------------
-# 2. Mercado de trabajo e informalidad (misma definición que el do-file)
+# 2. Mercado de trabajo e informalidad 
 # ---------------------------------------------------------------------
 cat, adm, tam = oc["s04b_12"], oc["s04b_13"], oc["s04b_14"]
 mt = pd.Series(np.nan, index=oc.index)
