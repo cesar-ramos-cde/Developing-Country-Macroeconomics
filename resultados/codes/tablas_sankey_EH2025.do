@@ -1,8 +1,5 @@
 *=====================================================================
 * TABLAS DEL DIAGRAMA DE SANKEY - EH2025 (INE)
-* Sexo -> gran sector económico -> formal / informal -> pobreza del hogar
-* Cada tabla da los números de una columna o de un flujo del gráfico.
-* Se usa [iw=factor] para tener números expandidos (población).
 *=====================================================================
 clear all
 set more off
