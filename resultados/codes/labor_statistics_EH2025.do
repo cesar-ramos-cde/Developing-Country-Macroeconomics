@@ -1,7 +1,6 @@
 *==============================================================================
 * ESTADÍSTICAS LABORALES DE BOLIVIA - Encuesta de Hogares 2025 (INE)
-* Base:   EH2025_Persona.dta   (recolección: 1 al 31 de diciembre de 2025)
-* Elaborado por Cesar Ramos
+* Base:   EH2025_Persona.dta   
 *------------------------------------------------------------------------------
 * Definiciones:
 *   pet     = 1 si tiene 14 años o más (población en edad de trabajar)
