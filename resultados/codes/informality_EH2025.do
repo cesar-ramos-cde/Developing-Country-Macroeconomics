@@ -54,8 +54,7 @@ label define formal 1 "Formal" 2 "Informal" 3 "Doméstico"
 label values formal formal
 
 *---------------------------------------------------------------------
-* 2. EMPLEO INFORMAL (enfoque OIT: protección social)
-*    Regla: es informal quien NO aporta a la Gestora (AFP), con dos ajustes:
+* 2. EMPLEO INFORMAL 
 *    - familiares y aprendices sin remuneración: siempre informales
 *    - empleadores en unidades empresariales (más de 5 personas): formales
 *---------------------------------------------------------------------
