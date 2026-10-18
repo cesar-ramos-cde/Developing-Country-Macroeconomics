@@ -1,12 +1,5 @@
 # =====================================================================
 # Red de informalidad y pluriempleo por actividad económica - EH2025 (INE)
-# Versión para LaTeX: sin título ni nota, texto en inglés.
-# Salidas: pluriemployment_network.pdf (vectorial, para LaTeX)
-#          pluriemployment_network.png (600 dpi)
-#
-# Requisitos:  pip install pandas numpy matplotlib
-# Uso:         cambie RUTA_DATOS y RUTA_SALIDA y corra:  python pluriemployment_network.py
-# En LaTeX:    \includegraphics[width=\textwidth]{pluriemployment_network.pdf}
 # =====================================================================
 import os
 import numpy as np
