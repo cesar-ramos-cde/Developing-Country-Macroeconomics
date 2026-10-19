@@ -19,7 +19,6 @@ gen ocupado = (condact == 1 & pet == 1)
 *---------------------------------------------------------------------
 * 1. MERCADO DE TRABAJO (enfoque productivo, como en 2017)
 *
-* OJO: en 2025 cambiaron los códigos de la categoría ocupacional
 *   s04b_12 (antes s06b_16):
 *     1 Obrero(a)/Empleado(a)
 *     2 Empleador(a) o socio(a) que sí recibe salario
